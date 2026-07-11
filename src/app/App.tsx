@@ -6,6 +6,7 @@ import { TimelineScreen } from './components/TimelineScreen'
 import { DonationScreen } from './components/DonationScreen'
 import { ProfileScreen } from './components/ProfileScreen'
 import { LandingScreen } from './components/LandingScreen'
+import { AuthScreen } from './components/AuthScreen'
 import type { Cause, Screen } from './data'
 import { CAUSES } from './data'
 import { Home, History, User, Heart } from 'lucide-react'
@@ -88,7 +89,13 @@ export default function App() {
       <AnimatePresence mode="wait">
         {screen === 'landing' && (
           <motion.div key="landing" {...PAGE_TRANSITION} className="min-h-screen">
-            <LandingScreen onEnter={() => setScreen('home')} />
+            <LandingScreen onEnter={() => setScreen('auth')} />
+          </motion.div>
+        )}
+
+        {screen === 'auth' && (
+          <motion.div key="auth" {...PAGE_TRANSITION} className="min-h-screen">
+            <AuthScreen onEnter={() => setScreen('home')} />
           </motion.div>
         )}
 

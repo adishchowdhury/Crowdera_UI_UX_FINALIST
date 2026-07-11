@@ -6,6 +6,50 @@ interface LandingScreenProps {
   onEnter: () => void
 }
 
+function FloatingImages({ images, isDark }: { images: string[], isDark: boolean }) {
+  return (
+    <div className="absolute inset-0 overflow-hidden pointer-events-none z-0 perspective-[1000px]">
+      {images.map((img, i) => {
+        const randomX = Math.random() * 100;
+        const randomY = Math.random() * 100;
+        const randomDelay = Math.random() * -20;
+        const duration = 20 + Math.random() * 10;
+        const scale = 0.6 + Math.random() * 0.8;
+        const z = -200 + Math.random() * 400; // Random depth
+        const rotateY = -15 + Math.random() * 30; // Random tilt
+        
+        return (
+          <motion.div
+            key={i}
+            className="absolute shadow-2xl rounded-2xl overflow-hidden"
+            style={{
+              left: `${randomX}%`,
+              top: '110%',
+              z,
+              rotateY,
+              scale
+            }}
+            animate={{
+              top: '-30%',
+              rotateZ: [0, 5, -5, 0]
+            }}
+            transition={{
+              duration,
+              repeat: Infinity,
+              ease: "linear",
+              delay: randomDelay
+            }}
+          >
+            <div className={`w-32 h-40 md:w-56 md:h-72 transition-opacity duration-1000 ${isDark ? 'opacity-70' : 'opacity-90'}`}>
+              <img src={img} alt="" className="w-full h-full object-cover" />
+            </div>
+          </motion.div>
+        )
+      })}
+    </div>
+  )
+}
+
 export function LandingScreen({ onEnter }: LandingScreenProps) {
   const [isDark, setIsDark] = useState(true)
 
@@ -84,6 +128,8 @@ export function LandingScreen({ onEnter }: LandingScreenProps) {
       <div className={`absolute inset-0 z-0 transition-colors duration-1000 ${isDark ? 'bg-black' : 'bg-[#FAFAF7]'}`}>
         <div className={`absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] ${isDark ? 'from-white/10 via-transparent to-transparent' : 'from-[#2C5530]/10 via-transparent to-transparent'}`} />
       </div>
+
+      <FloatingImages images={pexelsImages} isDark={isDark} />
     </div>
   )
 }

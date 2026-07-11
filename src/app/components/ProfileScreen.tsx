@@ -13,6 +13,13 @@ interface ProfileScreenProps {
 export function ProfileScreen({ onSelectCause }: ProfileScreenProps) {
   const [user, setUser] = useState<FirebaseUser | null>(null)
 
+  const getGreeting = () => {
+    const hour = new Date().getHours()
+    if (hour < 12) return 'Good morning'
+    if (hour < 18) return 'Good afternoon'
+    return 'Good evening'
+  }
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (u) => {
       setUser(u)
@@ -34,7 +41,7 @@ export function ProfileScreen({ onSelectCause }: ProfileScreenProps) {
           </div>
           <div className="text-center md:text-left">
             <h1 className="text-4xl md:text-5xl font-serif text-[#1D1D1F] font-medium tracking-tight mb-2">
-              {user?.displayName || USER.name}
+              {getGreeting()}, {(user?.displayName || USER.name).split(' ')[0]}
             </h1>
             <p className="text-[#1D1D1F]/50 text-base md:text-lg tracking-wide">
               {USER.streak}-day streak of impact

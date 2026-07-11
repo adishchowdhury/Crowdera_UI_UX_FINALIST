@@ -3,12 +3,23 @@ import { motion, useScroll, useTransform } from 'motion/react'
 import { ChevronRight, Bookmark } from 'lucide-react'
 import type { Cause } from '../data'
 import { CAUSES, USER } from '../data'
+import { auth } from '../../lib/firebase'
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth'
 
 interface HomeScreenProps {
   onSelectCause: (cause: Cause) => void
 }
 
 export function HomeScreen({ onSelectCause }: HomeScreenProps) {
+  const [user, setUser] = useState<FirebaseUser | null>(null)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u)
+    })
+    return () => unsubscribe()
+  }, [])
+
   const hour = new Date().getHours()
   const greeting = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening'
 
@@ -27,7 +38,7 @@ export function HomeScreen({ onSelectCause }: HomeScreenProps) {
         className="pt-24 px-8 md:px-12 lg:px-24 max-w-5xl mx-auto"
       >
         <p className="text-[#1D1D1F]/50 font-medium tracking-wide text-sm md:text-base uppercase mb-4">
-          {greeting}, {USER.name}
+          {greeting}, {(user?.displayName || USER.name).split(' ')[0]}
         </p>
         <h1 className="text-5xl md:text-7xl font-semibold text-[#1D1D1F] tracking-tight leading-[1.1] font-serif max-w-2xl">
           A journal of your impact on the world.

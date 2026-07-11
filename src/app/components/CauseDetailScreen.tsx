@@ -14,7 +14,7 @@ export function CauseDetailScreen({ cause, onBack, onDonate, onTimeline }: Cause
   const [imgLoaded, setImgLoaded] = useState(false)
 
   return (
-    <div className="w-full min-h-screen bg-[#FAFAF7] pb-32">
+    <div className="w-full min-h-screen bg-[#FAFAF7] pb-48">
       {/* Hero Image */}
       <div className="relative w-full h-[60vh] md:h-[70vh] max-h-[800px] bg-neutral-200 overflow-hidden">
         <motion.img
@@ -119,7 +119,7 @@ export function CauseDetailScreen({ cause, onBack, onDonate, onTimeline }: Cause
         initial={{ y: 100 }}
         animate={{ y: 0 }}
         transition={{ delay: 0.8, type: 'spring', damping: 20 }}
-        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm z-50"
+        className="fixed bottom-28 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm z-50"
       >
         <button
           onClick={() => onDonate(cause)}

@@ -1,6 +1,8 @@
 export type Screen =
   | 'splash'
   | 'onboarding'
+  | 'landing'
+  | 'auth'
   | 'home'
   | 'cause'
   | 'donate'
