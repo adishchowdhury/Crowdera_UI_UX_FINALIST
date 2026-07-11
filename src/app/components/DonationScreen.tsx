@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { ArrowLeft, Check, Sparkles } from 'lucide-react'
 import type { Cause } from '../data'
@@ -11,33 +11,12 @@ interface DonationScreenProps {
 
 const AMOUNTS = [200, 500, 1000, 2500]
 
-function Particle({ x, y, color }: { x: number; y: number; color: string }) {
-  const angle = Math.random() * Math.PI * 2
-  const speed = 40 + Math.random() * 120
-  const tx = Math.cos(angle) * speed
-  const ty = Math.sin(angle) * speed - 60
-
-  return (
-    <motion.div
-      initial={{ x, y, opacity: 1, scale: 1 }}
-      animate={{ x: x + tx, y: y + ty, opacity: 0, scale: 0 }}
-      transition={{ duration: 0.8 + Math.random() * 0.6, ease: 'easeOut' }}
-      style={{
-        position: 'fixed', width: 8, height: 8, borderRadius: '50%',
-        background: color, pointerEvents: 'none', zIndex: 9999,
-      }}
-    />
-  )
-}
-
 export function DonationScreen({ cause, onBack, onSuccess }: DonationScreenProps) {
   const [selected, setSelected] = useState(500)
   const [custom, setCustom] = useState('')
   const [isCustom, setIsCustom] = useState(false)
   const [paying, setPaying] = useState(false)
   const [paid, setPaid] = useState(false)
-  const [particles, setParticles] = useState<{ id: number; x: number; y: number; color: string }[]>([])
-  const btnRef = useRef<HTMLButtonElement>(null)
 
   const amount = isCustom ? (parseInt(custom) || 0) : selected
   const tier = cause.impact.find(t => parseInt(t.amount.replace(/[^0-9]/g, '')) === amount) || cause.impact[1]
@@ -49,196 +28,135 @@ export function DonationScreen({ cause, onBack, onSuccess }: DonationScreenProps
     setTimeout(() => {
       setPaid(true)
       setPaying(false)
-
-      // Burst particles
-      if (btnRef.current) {
-        const rect = btnRef.current.getBoundingClientRect()
-        const cx = rect.left + rect.width / 2
-        const cy = rect.top + rect.height / 2
-        const colors = [cause.tagColor, '#f5a623', '#ff5f7e', '#4fb3ff', '#ffffff']
-        const newParticles = Array.from({ length: 30 }, (_, i) => ({
-          id: i,
-          x: cx,
-          y: cy,
-          color: colors[i % colors.length],
-        }))
-        setParticles(newParticles)
-        setTimeout(() => setParticles([]), 1600)
-      }
-
-      setTimeout(() => onSuccess(), 2800)
+      setTimeout(() => onSuccess(), 2400)
     }, 1800)
   }
 
   return (
-    <div style={{
-      width: '100%', height: '100%', background: '#070712',
-      fontFamily: 'Inter, sans-serif', display: 'flex', flexDirection: 'column', overflow: 'hidden',
-    }}>
-      {/* Particles */}
-      {particles.map(p => <Particle key={p.id} x={p.x} y={p.y} color={p.color} />)}
-
+    <div className="w-full min-h-screen bg-[#FAFAF7] text-[#1D1D1F] flex flex-col items-center">
       {/* Header */}
-      <div style={{ padding: '48px 24px 20px', display: 'flex', alignItems: 'center', gap: 16 }}>
-        <motion.button whileTap={{ scale: 0.9 }} onClick={onBack} style={{
-          width: 40, height: 40, borderRadius: 12,
-          background: 'rgba(255,255,255,0.06)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          cursor: 'pointer',
-        }}>
-          <ArrowLeft size={18} color="#f8f8ff" />
-        </motion.button>
-        <div>
-          <p style={{ fontSize: 11, color: 'rgba(248,248,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>Supporting</p>
-          <p style={{ fontSize: 15, fontWeight: 600, color: '#f8f8ff' }}>{cause.person}</p>
+      <div className="w-full max-w-2xl px-6 md:px-12 pt-12 pb-6 flex items-center justify-between z-10">
+        <button
+          onClick={onBack}
+          className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#1D1D1F] hover:bg-neutral-50 transition-colors shadow-sm border border-black/5"
+        >
+          <ArrowLeft size={20} />
+        </button>
+        <div className="text-right">
+          <p className="text-xs font-semibold tracking-widest text-[#1D1D1F]/40 uppercase">
+            Support
+          </p>
+          <p className="text-lg font-serif font-medium">{cause.person}</p>
         </div>
       </div>
 
-      <div style={{ flex: 1, overflow: 'auto', padding: '0 24px' }}>
-        {/* Hero thumbnail */}
-        <div style={{ borderRadius: 20, overflow: 'hidden', height: 140, marginBottom: 28 }}>
-          <img src={cause.heroImage} alt={cause.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-        </div>
+      <div className="flex-1 w-full max-w-2xl px-6 md:px-12 pb-32 flex flex-col items-center">
+        
+        {/* Pass Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full bg-white rounded-[40px] p-8 md:p-12 shadow-[0_20px_80px_rgba(0,0,0,0.06)] border border-black/5 mb-12 flex flex-col items-center"
+        >
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-[24px] overflow-hidden mb-8 shadow-sm">
+            <img src={cause.heroImage} alt={cause.name} className="w-full h-full object-cover" />
+          </div>
 
-        {/* Amount selection */}
-        <p style={{ fontSize: 13, fontWeight: 600, color: 'rgba(248,248,255,0.5)', marginBottom: 14, textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-          Choose Amount
-        </p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 12 }}>
-          {AMOUNTS.map(amt => {
-            const active = !isCustom && selected === amt
-            return (
-              <motion.button
-                key={amt}
-                whileTap={{ scale: 0.96 }}
-                onClick={() => { setSelected(amt); setIsCustom(false) }}
-                style={{
-                  padding: '16px', borderRadius: 14, cursor: 'pointer',
-                  background: active ? cause.tagColor + '18' : 'rgba(255,255,255,0.04)',
-                  border: active ? `1px solid ${cause.tagColor}55` : '1px solid rgba(255,255,255,0.08)',
-                  transition: 'all 0.2s ease',
-                }}
-              >
-                <p style={{ fontSize: 18, fontWeight: 700, color: active ? cause.tagColor : '#f8f8ff' }}>₹{amt.toLocaleString()}</p>
-                <p style={{ fontSize: 11, color: active ? cause.tagColor + 'aa' : 'rgba(248,248,255,0.3)', marginTop: 4 }}>
-                  {cause.impact[AMOUNTS.indexOf(amt)]?.result || ''}
-                </p>
-              </motion.button>
-            )
-          })}
-        </div>
-        <input
-          placeholder="Custom amount (₹)"
-          value={custom}
-          onChange={e => { setCustom(e.target.value); setIsCustom(true) }}
-          onFocus={() => setIsCustom(true)}
-          style={{
-            width: '100%', padding: '14px 16px', borderRadius: 14,
-            background: isCustom ? cause.tagColor + '12' : 'rgba(255,255,255,0.04)',
-            border: isCustom ? `1px solid ${cause.tagColor}44` : '1px solid rgba(255,255,255,0.08)',
-            color: '#f8f8ff', fontSize: 15, fontFamily: 'Inter, sans-serif',
-            outline: 'none', boxSizing: 'border-box', marginBottom: 24,
-            transition: 'all 0.2s ease',
-          }}
-        />
+          <h2 className="text-3xl md:text-4xl font-serif text-center mb-12">
+            Continue the Story
+          </h2>
 
-        {/* Impact preview */}
-        {amount > 0 && (
-          <motion.div
-            key={amount}
-            initial={{ opacity: 0, y: 8 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              padding: '16px', borderRadius: 16,
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              marginBottom: 24,
-            }}
-          >
-            <p style={{ fontSize: 11, color: 'rgba(248,248,255,0.35)', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.08em' }}>Your Impact</p>
-            <div style={{ display: 'flex', gap: 12, alignItems: 'center' }}>
-              <span style={{ fontSize: 20, fontWeight: 700, color: cause.tagColor }}>₹{amount.toLocaleString()}</span>
-              <span style={{ fontSize: 16, color: 'rgba(248,248,255,0.3)' }}>→</span>
-              <span style={{ fontSize: 13, color: 'rgba(248,248,255,0.6)' }}>{tier?.result || 'Makes a difference'}</span>
-            </div>
-            {tier && (
-              <p style={{ fontSize: 11, color: cause.tagColor + 'aa', marginTop: 8 }}>🔓 {tier.chapter}</p>
-            )}
-          </motion.div>
-        )}
-      </div>
+          <div className="w-full grid grid-cols-2 gap-4 mb-6">
+            {AMOUNTS.map(amt => {
+              const active = !isCustom && selected === amt
+              return (
+                <button
+                  key={amt}
+                  onClick={() => { setSelected(amt); setIsCustom(false) }}
+                  className={`py-6 rounded-[24px] border ${active ? 'border-[#2C5530] bg-[#2C5530]/5' : 'border-black/5 bg-transparent'} transition-all hover:border-[#2C5530]/30`}
+                >
+                  <div className={`text-2xl font-serif mb-1 ${active ? 'text-[#2C5530]' : 'text-[#1D1D1F]'}`}>
+                    ₹{amt.toLocaleString()}
+                  </div>
+                </button>
+              )
+            })}
+          </div>
+          
+          <input
+            placeholder="Other Amount (₹)"
+            value={custom}
+            onChange={e => { setCustom(e.target.value); setIsCustom(true) }}
+            onFocus={() => setIsCustom(true)}
+            className={`w-full py-5 px-6 rounded-[24px] border ${isCustom ? 'border-[#2C5530] bg-[#2C5530]/5 text-[#2C5530]' : 'border-black/5 bg-transparent text-[#1D1D1F]'} text-lg font-serif text-center outline-none transition-all placeholder:text-[#1D1D1F]/30 mb-8`}
+          />
 
-      {/* Pay button */}
-      <div style={{ padding: '16px 24px 32px' }}>
-        <AnimatePresence mode="wait">
-          {paid ? (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0 }}
-              style={{
-                width: '100%', padding: '20px', borderRadius: 16,
-                background: 'linear-gradient(135deg, rgba(0,232,124,0.2), rgba(0,184,92,0.1))',
-                border: '1px solid rgba(0,232,124,0.3)',
-                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 8,
-              }}
+          {amount > 0 && (
+            <motion.div 
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              className="w-full bg-neutral-50 rounded-[24px] p-6 text-center border border-black/5"
             >
-              <div style={{
-                width: 48, height: 48, borderRadius: '50%',
-                background: 'rgba(0,232,124,0.2)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Check size={24} color="#00e87c" strokeWidth={3} />
-              </div>
-              <p style={{ fontSize: 16, fontWeight: 700, color: '#00e87c' }}>You're in!</p>
-              <p style={{ fontSize: 13, color: 'rgba(248,248,255,0.5)', textAlign: 'center' }}>
-                You're now following {cause.person.split(' ')[0]}'s story. New chapters await.
-              </p>
-            </motion.div>
-          ) : (
-            <motion.button
-              key="pay"
-              ref={btnRef}
-              whileTap={!paying ? { scale: 0.97 } : {}}
-              onClick={handlePay}
-              disabled={paying || amount <= 0}
-              style={{
-                width: '100%', padding: '20px', borderRadius: 16,
-                background: paying
-                  ? 'rgba(0,232,124,0.15)'
-                  : `linear-gradient(135deg, ${cause.tagColor} 0%, ${cause.tagColor}cc 100%)`,
-                color: paying ? cause.tagColor : '#040d08',
-                fontSize: 16, fontWeight: 700, fontFamily: 'Inter, sans-serif',
-                border: paying ? `1px solid ${cause.tagColor}44` : 'none',
-                cursor: paying || amount <= 0 ? 'default' : 'pointer',
-                boxShadow: paying ? 'none' : `0 8px 32px ${cause.tagColor}40`,
-                display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
-                transition: 'all 0.3s ease',
-              }}
-            >
-              {paying ? (
-                <>
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                    style={{ width: 18, height: 18, border: `2px solid ${cause.tagColor}`, borderTopColor: 'transparent', borderRadius: '50%' }}
-                  />
-                  Processing...
-                </>
-              ) : (
-                <>
-                  <Sparkles size={18} />
-                  {amount > 0 ? `Give ₹${amount.toLocaleString()} · Follow Story` : 'Choose an amount'}
-                </>
+              <p className="text-xs font-semibold tracking-widest text-[#1D1D1F]/40 uppercase mb-3">Your Impact</p>
+              <p className="text-lg font-serif text-[#1D1D1F] mb-2">{tier?.result || 'Makes a difference'}</p>
+              {tier && (
+                <p className="text-sm font-medium text-[#2C5530]">🔓 {tier.chapter}</p>
               )}
-            </motion.button>
+            </motion.div>
           )}
-        </AnimatePresence>
-        <p style={{ fontSize: 11, color: 'rgba(248,248,255,0.2)', textAlign: 'center', marginTop: 12 }}>
-          Secure payment · 100% goes to {cause.person.split(' ')[0]}
-        </p>
+
+        </motion.div>
+
+        {/* Action Area */}
+        <div className="w-full max-w-sm mx-auto">
+          <AnimatePresence mode="wait">
+            {paid ? (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="w-full py-6 rounded-[32px] bg-[#2C5530] text-white flex flex-col items-center gap-3 shadow-[0_20px_50px_rgba(44,85,48,0.3)]"
+              >
+                <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center mb-2">
+                  <Check size={24} className="text-white" strokeWidth={3} />
+                </div>
+                <p className="text-xl font-medium tracking-wide">Story Unlocked</p>
+                <p className="text-sm text-white/80">You're part of this journey now.</p>
+              </motion.div>
+            ) : (
+              <motion.button
+                key="pay"
+                whileTap={!paying ? { scale: 0.98 } : {}}
+                onClick={handlePay}
+                disabled={paying || amount <= 0}
+                className={`w-full py-6 rounded-full font-medium text-lg tracking-wide shadow-[0_16px_40px_rgba(44,85,48,0.25)] flex items-center justify-center gap-3 transition-all
+                  ${paying ? 'bg-[#2C5530]/80 text-white cursor-default' : amount <= 0 ? 'bg-neutral-200 text-neutral-400 cursor-not-allowed shadow-none' : 'bg-[#2C5530] text-white hover:bg-[#234526] hover:-translate-y-1 hover:shadow-[0_20px_50px_rgba(44,85,48,0.35)]'}
+                `}
+              >
+                {paying ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
+                      className="w-5 h-5 border-2 border-white border-t-transparent rounded-full"
+                    />
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles size={20} className="fill-current opacity-80" />
+                    {amount > 0 ? `Give ₹${amount.toLocaleString()}` : 'Select Amount'}
+                  </>
+                )}
+              </motion.button>
+            )}
+          </AnimatePresence>
+          <p className="text-xs text-[#1D1D1F]/40 text-center mt-6">
+            100% of your donation reaches {cause.person.split(' ')[0]}.
+          </p>
+        </div>
+
       </div>
     </div>
   )

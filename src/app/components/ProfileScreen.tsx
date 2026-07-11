@@ -1,210 +1,152 @@
+import { useState, useEffect } from 'react'
 import { motion } from 'motion/react'
-import { Settings, Share2, ChevronRight, Flame } from 'lucide-react'
+import { Settings, Share2, ChevronRight, Flame, LogOut, LogIn } from 'lucide-react'
 import { USER, CAUSES } from '../data'
 import type { Cause } from '../data'
+import { onAuthStateChanged, User as FirebaseUser } from 'firebase/auth'
+import { auth, signInWithGoogle, logOut } from '../../lib/firebase'
 
 interface ProfileScreenProps {
   onSelectCause: (cause: Cause) => void
 }
 
 export function ProfileScreen({ onSelectCause }: ProfileScreenProps) {
+  const [user, setUser] = useState<FirebaseUser | null>(null)
+
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (u) => {
+      setUser(u)
+    })
+    return () => unsubscribe()
+  }, [])
+
   return (
-    <div style={{
-      width: '100%', height: '100%', overflowY: 'auto',
-      background: '#070712', fontFamily: 'Inter, sans-serif',
-      paddingBottom: 90,
-    }}>
+    <div className="w-full min-h-screen bg-[#FAFAF7] pb-32">
       {/* Header */}
-      <div style={{ position: 'relative', padding: '56px 24px 32px', overflow: 'hidden' }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 250,
-          background: 'radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0,232,124,0.1) 0%, transparent 70%)',
-          pointerEvents: 'none',
-        }} />
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', position: 'relative' }}>
-          <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
-            <div style={{
-              width: 64, height: 64, borderRadius: 20,
-              background: 'linear-gradient(135deg, #00e87c, #00b85c)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: 28, fontWeight: 700, color: '#040d08',
-              boxShadow: '0 0 30px rgba(0,232,124,0.3)',
-            }}>
-              {USER.name[0]}
-            </div>
-            <div>
-              <h1 style={{
-                fontFamily: "'Playfair Display', serif",
-                fontSize: 24, fontWeight: 600, color: '#f8f8ff',
-                letterSpacing: '-0.01em',
-              }}>
-                {USER.name}
-              </h1>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 4 }}>
-                <Flame size={14} color="#f5a623" />
-                <span style={{ fontSize: 12, color: '#f5a623', fontWeight: 600 }}>{USER.streak}-day streak</span>
-              </div>
+      <div className="pt-24 px-6 md:px-12 lg:px-24 max-w-5xl mx-auto flex flex-col md:flex-row items-center md:items-start justify-between gap-8 mb-20">
+        <div className="flex flex-col md:flex-row items-center gap-6">
+          <div className="w-24 h-24 md:w-32 md:h-32 rounded-[28px] bg-gradient-to-br from-[#2C5530] to-[#142A17] flex items-center justify-center text-4xl md:text-5xl font-serif text-white shadow-[0_16px_40px_rgba(44,85,48,0.2)] border-2 border-white overflow-hidden">
+            {user?.photoURL ? (
+              <img src={user.photoURL} alt={user.displayName || 'User'} className="w-full h-full object-cover" />
+            ) : (
+              user?.displayName?.[0] || USER.name[0]
+            )}
+          </div>
+          <div className="text-center md:text-left">
+            <h1 className="text-4xl md:text-5xl font-serif text-[#1D1D1F] font-medium tracking-tight mb-2">
+              {user?.displayName || USER.name}
+            </h1>
+            <p className="text-[#1D1D1F]/50 text-base md:text-lg tracking-wide">
+              {USER.streak}-day streak of impact
+            </p>
+          </div>
+        </div>
+
+        <div className="flex gap-4">
+          <button className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#1D1D1F] hover:bg-neutral-50 transition-colors shadow-sm border border-black/5">
+            <Share2 size={20} />
+          </button>
+          {user ? (
+            <button onClick={logOut} title="Log Out" className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-[#1D1D1F] hover:bg-neutral-50 transition-colors shadow-sm border border-black/5">
+              <LogOut size={20} />
+            </button>
+          ) : (
+            <button onClick={signInWithGoogle} title="Log In" className="w-12 h-12 bg-[#2C5530] rounded-full flex items-center justify-center text-white hover:bg-[#234526] transition-colors shadow-sm">
+              <LogIn size={20} />
+            </button>
+          )}
+        </div>
+      </div>
+
+
+      <div className="px-6 md:px-12 lg:px-24 max-w-5xl mx-auto space-y-16">
+        
+        {/* Activity Heatmap */}
+        <section>
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-2xl font-serif text-[#1D1D1F]">Impact Consistency</h2>
+            <div className="flex items-center gap-2 text-sm text-[#1D1D1F]/50">
+              <span className="flex items-center gap-1"><Flame size={14} className="text-orange-500" /> {USER.streak} day streak</span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            {[Share2, Settings].map((Icon, i) => (
-              <motion.button key={i} whileTap={{ scale: 0.9 }} style={{
-                width: 38, height: 38, borderRadius: 12,
-                background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.08)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer',
-              }}>
-                <Icon size={16} color="rgba(248,248,255,0.5)" />
-              </motion.button>
+          <div className="bg-white rounded-[24px] p-6 md:p-8 shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-black/5 overflow-x-auto">
+            <div className="flex gap-2 min-w-max">
+              {Array.from({ length: 52 }).map((_, weekIndex) => (
+                <div key={weekIndex} className="flex flex-col gap-2">
+                  {Array.from({ length: 7 }).map((_, dayIndex) => {
+                    // Randomize some activity for the visual effect
+                    const rand = (weekIndex * 7 + dayIndex + 13) % 17
+                    const active = rand > 12
+                    const high = active && rand > 15
+                    const past = weekIndex < 50
+                    
+                    if (!past) {
+                      return <div key={dayIndex} className="w-4 h-4 rounded-sm bg-black/5" />
+                    }
+                    
+                    return (
+                      <div 
+                        key={dayIndex} 
+                        className={`w-4 h-4 rounded-sm ${high ? 'bg-[#2C5530]' : active ? 'bg-[#2C5530]/40' : 'bg-black/5'}`} 
+                      />
+                    )
+                  })}
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Your Chapters */}
+        <section>
+          <h2 className="text-2xl font-serif text-[#1D1D1F] mb-8">Stories You're Following</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {CAUSES.map((cause, i) => (
+              <motion.div
+                key={cause.id}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: i * 0.1, duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+                onClick={() => onSelectCause(cause)}
+                className="group cursor-pointer bg-white rounded-[24px] p-4 flex items-center gap-6 shadow-[0_4px_20px_rgba(0,0,0,0.03)] hover:shadow-[0_8px_30px_rgba(0,0,0,0.06)] transition-all border border-black/5"
+              >
+                <div className="w-20 h-20 md:w-24 md:h-24 rounded-[16px] overflow-hidden flex-shrink-0">
+                  <img src={cause.heroImage} alt={cause.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-serif text-[#1D1D1F] mb-1">{cause.person}</h3>
+                  <p className="text-sm text-[#1D1D1F]/50">Chapter {cause.chapter} of {cause.totalChapters}</p>
+                </div>
+                <ChevronRight size={20} className="text-[#1D1D1F]/30 group-hover:text-[#1D1D1F]/60 mr-2" />
+              </motion.div>
             ))}
           </div>
-        </div>
-      </div>
+        </section>
 
-      {/* Stats */}
-      <div style={{ padding: '0 24px 28px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
-          {[
-            { value: USER.livesTouched, label: 'Lives touched', icon: '💚' },
-            { value: USER.journeysFollowing, label: 'Following', icon: '📖' },
-            { value: `₹${(USER.totalDonated / 1000).toFixed(1)}K`, label: 'Given', icon: '✨' },
-          ].map((stat, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, y: 12 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1, duration: 0.4 }}
-              style={{
-                padding: '16px 12px', borderRadius: 16, textAlign: 'center',
-                background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-              }}
-            >
-              <span style={{ fontSize: 20, display: 'block', marginBottom: 6 }}>{stat.icon}</span>
-              <p style={{ fontSize: 20, fontWeight: 700, color: '#f8f8ff', lineHeight: 1 }}>{stat.value}</p>
-              <p style={{ fontSize: 10, color: 'rgba(248,248,255,0.35)', marginTop: 4 }}>{stat.label}</p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Streak Grid */}
-      <SectionTitle title="Activity" />
-      <div style={{ padding: '0 24px 28px' }}>
-        <div style={{
-          padding: '16px', borderRadius: 20,
-          background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-        }}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 4 }}>
-            {Array.from({ length: 35 }).map((_, i) => {
-              const rand = (i * 7 + 13) % 17
-              const active = rand > 5
-              const high = active && rand > 11
-              return (
-                <div key={i} style={{
-                  aspectRatio: '1', borderRadius: 4,
-                  background: high ? '#00e87c' : active ? 'rgba(0,232,124,0.25)' : 'rgba(255,255,255,0.06)',
-                }} />
-              )
-            })}
-          </div>
-          <p style={{ fontSize: 11, color: 'rgba(248,248,255,0.3)', marginTop: 10 }}>
-            {USER.streak} days active this year
-          </p>
-        </div>
-      </div>
-
-      {/* Badges */}
-      <SectionTitle title="Achievements" />
-      <div style={{ padding: '0 24px 28px' }}>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 12 }}>
-          {USER.badges.map((badge, i) => (
-            <motion.div
-              key={badge.id}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: i * 0.07, duration: 0.4, ease: [0.22, 1, 0.36, 1] }}
-              style={{
-                padding: '16px 12px', borderRadius: 16, textAlign: 'center',
-                background: badge.unlocked ? 'rgba(0,232,124,0.06)' : 'rgba(255,255,255,0.03)',
-                border: badge.unlocked ? '1px solid rgba(0,232,124,0.2)' : '1px solid rgba(255,255,255,0.06)',
-                opacity: badge.unlocked ? 1 : 0.45,
-              }}
-            >
-              <span style={{ fontSize: 28, display: 'block', marginBottom: 6, filter: badge.unlocked ? 'none' : 'grayscale(1)' }}>
-                {badge.icon}
-              </span>
-              <p style={{ fontSize: 10, fontWeight: 600, color: badge.unlocked ? '#f8f8ff' : 'rgba(248,248,255,0.3)', lineHeight: 1.3 }}>
-                {badge.name}
-              </p>
-            </motion.div>
-          ))}
-        </div>
-      </div>
-
-      {/* Following */}
-      <SectionTitle title="Stories I'm Following" />
-      <div style={{ padding: '0 24px 28px', display: 'flex', flexDirection: 'column', gap: 12 }}>
-        {CAUSES.map((cause, i) => (
-          <motion.button
-            key={cause.id}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: i * 0.1, duration: 0.4 }}
-            whileTap={{ scale: 0.98 }}
-            onClick={() => onSelectCause(cause)}
-            style={{
-              display: 'flex', alignItems: 'center', gap: 14, padding: '14px',
-              borderRadius: 16, background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              cursor: 'pointer', textAlign: 'left', width: '100%',
-            }}
+        {/* Memory Book Teaser */}
+        <section>
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.8 }}
+            className="w-full relative rounded-[32px] overflow-hidden bg-[#2C5530] text-white p-12 shadow-[0_20px_60px_rgba(44,85,48,0.2)]"
           >
-            <div style={{ width: 48, height: 48, borderRadius: 12, overflow: 'hidden', flexShrink: 0 }}>
-              <img src={cause.heroImage} alt={cause.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+            <div className="absolute inset-0 bg-gradient-to-r from-black/20 to-transparent pointer-events-none" />
+            <div className="relative z-10 max-w-lg">
+              <span className="text-4xl mb-6 block">📚</span>
+              <h2 className="text-3xl md:text-4xl font-serif mb-4">Your Memory Book</h2>
+              <p className="text-white/80 text-lg leading-relaxed mb-8">
+                Every moment you've been part of, compiled into one beautiful story of hope and change.
+              </p>
+              <button className="px-8 py-3 bg-white text-[#2C5530] rounded-full font-medium text-sm tracking-wide hover:bg-neutral-50 transition-colors">
+                View Your 2025 Review
+              </button>
             </div>
-            <div style={{ flex: 1 }}>
-              <p style={{ fontSize: 13, fontWeight: 600, color: '#f8f8ff', marginBottom: 3 }}>{cause.person}</p>
-              <p style={{ fontSize: 11, color: 'rgba(248,248,255,0.35)' }}>Chapter {cause.chapter}/{cause.totalChapters} · {cause.lastUpdate}</p>
-              <div style={{ height: 3, borderRadius: 99, background: 'rgba(255,255,255,0.08)', marginTop: 8, overflow: 'hidden' }}>
-                <div style={{
-                  height: '100%', borderRadius: 99, background: cause.tagColor,
-                  width: `${(cause.chapter / cause.totalChapters) * 100}%`,
-                }} />
-              </div>
-            </div>
-            <ChevronRight size={16} color="rgba(248,248,255,0.2)" />
-          </motion.button>
-        ))}
-      </div>
-
-      {/* Memory Book teaser */}
-      <div style={{ padding: '0 24px 16px' }}>
-        <div style={{
-          padding: '20px', borderRadius: 20, textAlign: 'center',
-          background: 'linear-gradient(135deg, rgba(245,166,35,0.1), rgba(255,95,126,0.08))',
-          border: '1px solid rgba(245,166,35,0.18)',
-        }}>
-          <span style={{ fontSize: 32, display: 'block', marginBottom: 10 }}>📚</span>
-          <p style={{ fontSize: 14, fontWeight: 600, color: '#f8f8ff', marginBottom: 6 }}>Your Memory Book</p>
-          <p style={{ fontSize: 12, color: 'rgba(248,248,255,0.4)', lineHeight: 1.6, marginBottom: 14 }}>
-            Every moment you've been part of, compiled into one beautiful story.
-          </p>
-          <div style={{
-            padding: '10px 20px', borderRadius: 10, display: 'inline-block',
-            background: 'rgba(245,166,35,0.12)', border: '1px solid rgba(245,166,35,0.25)',
-            fontSize: 12, fontWeight: 600, color: '#f5a623',
-          }}>
-            View 2025 Review →
-          </div>
-        </div>
+          </motion.div>
+        </section>
       </div>
     </div>
-  )
-}
-
-function SectionTitle({ title }: { title: string }) {
-  return (
-    <h3 style={{ fontSize: 16, fontWeight: 600, color: '#f8f8ff', padding: '0 24px 12px', letterSpacing: '-0.01em' }}>
-      {title}
-    </h3>
   )
 }

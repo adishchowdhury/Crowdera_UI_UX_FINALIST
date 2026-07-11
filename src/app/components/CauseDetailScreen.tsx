@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { motion } from 'motion/react'
-import { ArrowLeft, MapPin, Users, ChevronRight, Lock } from 'lucide-react'
+import { ArrowLeft, MapPin, ChevronRight, Bookmark } from 'lucide-react'
 import type { Cause } from '../data'
 
 interface CauseDetailScreenProps {
@@ -12,263 +12,123 @@ interface CauseDetailScreenProps {
 
 export function CauseDetailScreen({ cause, onBack, onDonate, onTimeline }: CauseDetailScreenProps) {
   const [imgLoaded, setImgLoaded] = useState(false)
-  const progress = cause.raised / cause.goal
 
   return (
-    <div style={{
-      width: '100%', height: '100%', overflowY: 'auto',
-      background: '#070712', fontFamily: 'Inter, sans-serif',
-      paddingBottom: 100,
-    }}>
-      {/* Hero */}
-      <div style={{ position: 'relative', height: 380, overflow: 'hidden' }}>
-        <img
+    <div className="w-full min-h-screen bg-[#FAFAF7] pb-32">
+      {/* Hero Image */}
+      <div className="relative w-full h-[60vh] md:h-[70vh] max-h-[800px] bg-neutral-200 overflow-hidden">
+        <motion.img
           src={cause.heroImage}
           alt={cause.name}
           onLoad={() => setImgLoaded(true)}
-          style={{
-            width: '100%', height: '100%', objectFit: 'cover',
-            transition: 'opacity 0.6s ease',
-            opacity: imgLoaded ? 1 : 0,
-          }}
+          initial={{ scale: 1.1, opacity: 0 }}
+          animate={{ scale: 1, opacity: imgLoaded ? 1 : 0 }}
+          transition={{ duration: 1.2, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full h-full object-cover"
         />
-        <div style={{
-          position: 'absolute', inset: 0,
-          background: 'linear-gradient(to top, #070712 0%, rgba(7,7,18,0.4) 40%, transparent 70%)',
-        }} />
+        
+        {/* Top Gradient for Nav */}
+        <div className="absolute top-0 left-0 right-0 h-32 bg-gradient-to-b from-black/30 to-transparent" />
 
-        {/* Back button */}
-        <motion.button
-          initial={{ opacity: 0, x: -10 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ duration: 0.4 }}
-          whileTap={{ scale: 0.9 }}
+        {/* Back Button */}
+        <button
           onClick={onBack}
-          style={{
-            position: 'absolute', top: 48, left: 20,
-            width: 40, height: 40, borderRadius: 12,
-            background: 'rgba(7,7,18,0.7)', backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(255,255,255,0.12)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            cursor: 'pointer',
-          }}
+          className="absolute top-8 left-8 md:top-12 md:left-12 w-12 h-12 bg-white/20 backdrop-blur-xl border border-white/30 rounded-full flex items-center justify-center text-white hover:bg-white/30 transition-colors"
         >
-          <ArrowLeft size={18} color="#f8f8ff" />
-        </motion.button>
-
-        {/* Tag */}
-        <div style={{
-          position: 'absolute', top: 48, right: 20,
-          padding: '6px 12px', borderRadius: 99,
-          background: cause.tagColor + '22',
-          border: `1px solid ${cause.tagColor}55`,
-          fontSize: 12, fontWeight: 600, color: cause.tagColor,
-          backdropFilter: 'blur(12px)',
-        }}>
-          {cause.tag}
-        </div>
-
-        {/* Chapter badge */}
-        <div style={{
-          position: 'absolute', bottom: 20, right: 20,
-          padding: '8px 14px', borderRadius: 12,
-          background: 'rgba(7,7,18,0.7)', backdropFilter: 'blur(12px)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          fontSize: 12, color: 'rgba(248,248,255,0.7)', textAlign: 'center',
-        }}>
-          <span style={{ fontSize: 18, display: 'block', marginBottom: 2 }}>📖</span>
-          Ch {cause.chapter}/{cause.totalChapters}
-        </div>
+          <ArrowLeft size={20} />
+        </button>
       </div>
 
-      {/* Content */}
-      <div style={{ padding: '0 24px' }}>
-        {/* Title & Meta */}
-        <motion.div
-          initial={{ opacity: 0, y: 16 }}
+      {/* Content Container */}
+      <div className="max-w-4xl mx-auto px-6 md:px-12 -mt-24 relative z-10">
+        
+        {/* Title Card */}
+        <motion.div 
+          initial={{ opacity: 0, y: 40 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-          style={{ marginTop: 20, marginBottom: 20 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+          className="bg-white rounded-[32px] p-8 md:p-12 shadow-[0_20px_80px_rgba(0,0,0,0.06)]"
         >
-          <h1 style={{
-            fontFamily: "'Playfair Display', serif",
-            fontSize: 28, fontWeight: 700, color: '#f8f8ff',
-            letterSpacing: '-0.02em', lineHeight: 1.2, marginBottom: 10,
-          }}>
+          <div className="flex items-center gap-3 mb-6">
+            <span className="px-4 py-1.5 rounded-full bg-[#FAFAF7] text-[#1D1D1F]/60 text-xs font-semibold tracking-wide uppercase border border-black/5">
+              {cause.tag}
+            </span>
+            <span className="flex items-center gap-1.5 text-xs font-medium text-[#1D1D1F]/40">
+              <MapPin size={14} /> {cause.location}
+            </span>
+          </div>
+
+          <h1 className="text-4xl md:text-6xl font-serif font-medium text-[#1D1D1F] leading-[1.1] tracking-tight mb-8">
             {cause.name}
           </h1>
-          <div style={{ display: 'flex', gap: 16, marginBottom: 8 }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <MapPin size={12} color="rgba(248,248,255,0.35)" />
-              <span style={{ fontSize: 12, color: 'rgba(248,248,255,0.35)' }}>{cause.location}</span>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
-              <Users size={12} color="rgba(248,248,255,0.35)" />
-              <span style={{ fontSize: 12, color: 'rgba(248,248,255,0.35)' }}>{cause.backers.toLocaleString()} following</span>
-            </div>
-          </div>
-          <p style={{ fontSize: 14, color: 'rgba(248,248,255,0.55)', lineHeight: 1.7 }}>
+
+          <p className="text-lg md:text-xl text-[#1D1D1F]/70 leading-relaxed font-light">
             {cause.description}
           </p>
         </motion.div>
 
-        {/* Latest Update */}
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1, duration: 0.5 }}
-          style={{
-            padding: '14px', borderRadius: 16,
-            background: 'rgba(0,232,124,0.06)',
-            border: '1px solid rgba(0,232,124,0.15)',
-            marginBottom: 24,
-          }}
-        >
-          <div style={{ display: 'flex', gap: 8, alignItems: 'flex-start' }}>
-            <span style={{ fontSize: 20 }}>📝</span>
-            <div>
-              <p style={{ fontSize: 11, color: 'rgba(0,232,124,0.7)', fontWeight: 600, marginBottom: 4, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Latest Update · {cause.lastUpdate}</p>
-              <p style={{ fontSize: 13, color: 'rgba(248,248,255,0.65)', lineHeight: 1.6 }}>{cause.lastUpdateText}</p>
-            </div>
-          </div>
-        </motion.div>
-
-        {/* Progress */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.2, duration: 0.5 }}
-          style={{ marginBottom: 28 }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 8 }}>
-            <span style={{ fontSize: 22, fontWeight: 700, color: '#f8f8ff' }}>
-              ₹{cause.raised.toLocaleString('en-IN')}
-            </span>
-            <span style={{ fontSize: 12, color: 'rgba(248,248,255,0.35)' }}>
-              of ₹{cause.goal.toLocaleString('en-IN')} goal
-            </span>
-          </div>
-          <div style={{ height: 6, borderRadius: 99, background: 'rgba(255,255,255,0.08)', overflow: 'hidden', marginBottom: 8 }}>
-            <motion.div
-              initial={{ width: 0 }}
-              animate={{ width: `${progress * 100}%` }}
-              transition={{ delay: 0.4, duration: 1.2, ease: 'easeOut' }}
-              style={{ height: '100%', background: `linear-gradient(90deg, ${cause.tagColor}, ${cause.tagColor}aa)`, borderRadius: 99 }}
-            />
-          </div>
-          <p style={{ fontSize: 12, color: 'rgba(248,248,255,0.3)' }}>{Math.round(progress * 100)}% funded · {cause.backers.toLocaleString()} supporters</p>
-        </motion.div>
-
-        {/* Impact Tiers */}
-        <SectionTitle title="Choose Your Impact" />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 28 }}>
-          {cause.impact.map((tier, i) => (
-            <motion.div
-              key={i}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.2 + i * 0.08, duration: 0.4 }}
-              style={{
-                padding: '14px 16px', borderRadius: 16,
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-              }}
+        {/* Story Journal Entries */}
+        <div className="mt-24">
+          <div className="flex items-end justify-between mb-12">
+            <h2 className="text-3xl font-serif text-[#1D1D1F]">Journal Entries</h2>
+            <button 
+              onClick={() => onTimeline(cause)}
+              className="text-[#2C5530] font-medium text-sm flex items-center gap-1 hover:opacity-80 transition-opacity"
             >
-              <div>
-                <p style={{ fontSize: 16, fontWeight: 700, color: cause.tagColor, marginBottom: 3 }}>{tier.amount}</p>
-                <p style={{ fontSize: 12, color: 'rgba(248,248,255,0.5)' }}>{tier.result}</p>
-              </div>
-              <div style={{
-                padding: '4px 10px', borderRadius: 99,
-                background: cause.tagColor + '15',
-                border: `1px solid ${cause.tagColor}30`,
-              }}>
-                <p style={{ fontSize: 10, fontWeight: 600, color: cause.tagColor }}>{tier.chapter}</p>
-              </div>
-            </motion.div>
-          ))}
-        </div>
+              View Full Timeline <ChevronRight size={16} />
+            </button>
+          </div>
 
-        {/* Timeline Preview */}
-        <SectionTitle title="Story Timeline" />
-        <div style={{ marginBottom: 28 }}>
-          {cause.milestones.slice(0, 4).map((ms, i) => (
-            <motion.div
-              key={ms.id}
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3 + i * 0.08, duration: 0.4 }}
-              style={{ display: 'flex', gap: 14, marginBottom: 0, position: 'relative' }}
-            >
-              {/* Line */}
-              {i < 3 && (
-                <div style={{
-                  position: 'absolute', left: 18, top: 36, width: 2, height: 40,
-                  background: ms.unlocked ? `${cause.tagColor}30` : 'rgba(255,255,255,0.06)',
-                }} />
-              )}
-              <div style={{
-                flexShrink: 0, width: 36, height: 36, borderRadius: 12,
-                background: ms.unlocked ? cause.tagColor + '18' : 'rgba(255,255,255,0.04)',
-                border: ms.unlocked ? `1px solid ${cause.tagColor}40` : '1px solid rgba(255,255,255,0.06)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: ms.unlocked ? 16 : 14,
-              }}>
-                {ms.unlocked ? ms.mood : <Lock size={12} color="rgba(248,248,255,0.2)" />}
-              </div>
-              <div style={{ paddingBottom: 28 }}>
-                <p style={{ fontSize: 13, fontWeight: 600, color: ms.unlocked ? '#f8f8ff' : 'rgba(248,248,255,0.25)', marginBottom: 2 }}>{ms.title}</p>
-                <p style={{ fontSize: 11, color: ms.unlocked ? 'rgba(248,248,255,0.4)' : 'rgba(248,248,255,0.15)' }}>{ms.date}</p>
-              </div>
-            </motion.div>
-          ))}
-          <button
-            onClick={() => onTimeline(cause)}
-            style={{
-              width: '100%', padding: '14px', borderRadius: 14,
-              background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)',
-              color: 'rgba(248,248,255,0.5)', fontSize: 13, cursor: 'pointer', fontFamily: 'Inter, sans-serif',
-              display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6,
-            }}
-          >
-            View Full Timeline <ChevronRight size={14} />
-          </button>
+          <div className="space-y-16">
+            {cause.journalEntries.map((entry, i) => (
+              <motion.div 
+                key={entry.id}
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: "-100px" }}
+                transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+                className="grid grid-cols-1 md:grid-cols-12 gap-8 md:gap-12 items-center"
+              >
+                {/* Date & Emotion */}
+                <div className="md:col-span-3 flex flex-row md:flex-col items-center md:items-start gap-4">
+                  <div className="w-12 h-12 bg-white rounded-full flex items-center justify-center text-2xl shadow-sm border border-black/5">
+                    {entry.emotion}
+                  </div>
+                  <div className="text-sm font-medium text-[#1D1D1F]/50">{entry.date}</div>
+                </div>
+
+                {/* Content */}
+                <div className={`md:col-span-9 ${entry.type === 'photo' ? 'bg-white rounded-[24px] p-4 shadow-[0_8px_30px_rgba(0,0,0,0.04)]' : ''}`}>
+                  {entry.image && (
+                    <div className="rounded-[16px] overflow-hidden mb-6 bg-neutral-100">
+                      <img src={entry.image} alt="Journal entry" className="w-full h-auto object-cover" />
+                    </div>
+                  )}
+                  <p className={`text-xl md:text-2xl font-serif leading-relaxed text-[#1D1D1F] ${!entry.image ? 'border-l-2 border-[#2C5530]/20 pl-6' : 'px-4 pb-4'}`}>
+                    "{entry.text}"
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
 
-      {/* Sticky CTA */}
-      <div style={{
-        position: 'fixed', bottom: 0, left: '50%', transform: 'translateX(-50%)',
-        width: '100%', maxWidth: 430,
-        padding: '16px 24px',
-        background: 'rgba(7,7,18,0.9)', backdropFilter: 'blur(24px)',
-        borderTop: '1px solid rgba(255,255,255,0.06)',
-        zIndex: 50,
-      }}>
-        <motion.button
-          whileTap={{ scale: 0.97 }}
+      {/* Floating CTA */}
+      <motion.div 
+        initial={{ y: 100 }}
+        animate={{ y: 0 }}
+        transition={{ delay: 0.8, type: 'spring', damping: 20 }}
+        className="fixed bottom-8 left-1/2 -translate-x-1/2 w-[calc(100%-3rem)] max-w-sm z-50"
+      >
+        <button
           onClick={() => onDonate(cause)}
-          style={{
-            width: '100%', padding: '18px', borderRadius: 16,
-            background: `linear-gradient(135deg, ${cause.tagColor} 0%, ${cause.tagColor}cc 100%)`,
-            color: '#040d08', fontSize: 16, fontWeight: 700,
-            fontFamily: 'Inter, sans-serif', border: 'none', cursor: 'pointer',
-            boxShadow: `0 8px 32px ${cause.tagColor}40`,
-            letterSpacing: '0.01em',
-          }}
+          className="w-full py-5 bg-[#2C5530] text-white rounded-full shadow-[0_16px_40px_rgba(44,85,48,0.3)] hover:shadow-[0_20px_50px_rgba(44,85,48,0.4)] hover:bg-[#234526] transition-all transform hover:scale-[1.02] active:scale-[0.98] font-medium text-lg tracking-wide flex items-center justify-center gap-2"
         >
-          Support {cause.person.split(' ')[0]}'s Journey
-        </motion.button>
-      </div>
+          <Bookmark size={20} className="fill-current opacity-80" />
+          Support {cause.person.split(' ')[0]}'s Story
+        </button>
+      </motion.div>
     </div>
-  )
-}
-
-function SectionTitle({ title }: { title: string }) {
-  return (
-    <h3 style={{ fontSize: 16, fontWeight: 600, color: '#f8f8ff', marginBottom: 14, letterSpacing: '-0.01em' }}>
-      {title}
-    </h3>
   )
 }

@@ -1,6 +1,6 @@
 import { useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
-import { ArrowLeft, Lock, ChevronDown } from 'lucide-react'
+import { motion, useScroll, useTransform, AnimatePresence } from 'motion/react'
+import { ArrowLeft, Lock } from 'lucide-react'
 import type { Cause, Milestone } from '../data'
 
 interface TimelineScreenProps {
@@ -10,247 +10,123 @@ interface TimelineScreenProps {
 }
 
 export function TimelineScreen({ cause, onBack, onDonate }: TimelineScreenProps) {
-  const [expanded, setExpanded] = useState<string | null>('m1')
+  const { scrollY } = useScroll()
 
   return (
-    <div style={{
-      width: '100%', height: '100%', background: '#070712',
-      fontFamily: 'Inter, sans-serif', overflowY: 'auto',
-      paddingBottom: 100,
-    }}>
-      {/* Header */}
-      <div style={{ position: 'relative', padding: '48px 24px 24px' }}>
-        <div style={{
-          position: 'absolute', top: 0, left: 0, right: 0, height: 200,
-          background: `radial-gradient(ellipse 80% 60% at 30% 0%, ${cause.tagColor}0a 0%, transparent 70%)`,
-          pointerEvents: 'none',
-        }} />
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
-          <motion.button
-            whileTap={{ scale: 0.9 }}
-            onClick={onBack}
-            style={{
-              width: 40, height: 40, borderRadius: 12,
-              background: 'rgba(255,255,255,0.06)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              cursor: 'pointer', flexShrink: 0,
-            }}
-          >
-            <ArrowLeft size={18} color="#f8f8ff" />
-          </motion.button>
-          <div>
-            <p style={{ fontSize: 11, color: 'rgba(248,248,255,0.35)', textTransform: 'uppercase', letterSpacing: '0.1em' }}>
-              Impact Timeline
-            </p>
-            <h2 style={{
-              fontFamily: "'Playfair Display', serif",
-              fontSize: 20, fontWeight: 600, color: '#f8f8ff',
-              letterSpacing: '-0.01em',
-            }}>
-              {cause.person}'s Journey
-            </h2>
-          </div>
-        </div>
-
-        {/* Chapter progress */}
-        <div style={{
-          padding: '14px 16px', borderRadius: 16,
-          background: 'rgba(255,255,255,0.04)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-        }}>
-          <div>
-            <p style={{ fontSize: 11, color: 'rgba(248,248,255,0.35)', marginBottom: 4 }}>Your chapters</p>
-            <div style={{ display: 'flex', gap: 6 }}>
-              {Array.from({ length: cause.totalChapters }).map((_, i) => (
-                <div key={i} style={{
-                  width: 24, height: 4, borderRadius: 99,
-                  background: i < cause.chapter ? cause.tagColor : 'rgba(255,255,255,0.1)',
-                  transition: 'all 0.3s ease',
-                }} />
-              ))}
-            </div>
-          </div>
-          <div style={{ textAlign: 'right' }}>
-            <p style={{ fontSize: 20, fontWeight: 700, color: '#f8f8ff' }}>{cause.chapter}</p>
-            <p style={{ fontSize: 11, color: 'rgba(248,248,255,0.3)' }}>of {cause.totalChapters}</p>
-          </div>
-        </div>
+    <div className="w-full min-h-screen bg-[#FAFAF7] text-[#1D1D1F]">
+      {/* Sticky Header */}
+      <div className="fixed top-0 left-0 right-0 h-24 bg-gradient-to-b from-[#FAFAF7] to-transparent z-50 flex items-center px-6 md:px-12">
+        <button
+          onClick={onBack}
+          className="w-12 h-12 bg-white/80 backdrop-blur-xl border border-black/5 rounded-full flex items-center justify-center text-[#1D1D1F] hover:bg-white transition-colors shadow-sm"
+        >
+          <ArrowLeft size={20} />
+        </button>
       </div>
 
-      {/* Timeline */}
-      <div style={{ padding: '0 24px' }}>
-        {cause.milestones.map((ms, index) => (
-          <TimelineNode
-            key={ms.id}
-            milestone={ms}
-            index={index}
-            isLast={index === cause.milestones.length - 1}
-            isExpanded={expanded === ms.id}
-            onExpand={() => setExpanded(expanded === ms.id ? null : ms.id)}
-            accentColor={cause.tagColor}
-          />
-        ))}
-      </div>
+      <div className="pt-32 pb-48 max-w-5xl mx-auto px-6 md:px-12">
+        
+        <div className="mb-24 text-center">
+          <p className="text-sm font-semibold tracking-widest text-[#1D1D1F]/40 uppercase mb-4">
+            Memories
+          </p>
+          <h2 className="text-5xl md:text-7xl font-serif text-[#1D1D1F] font-medium tracking-tight">
+            {cause.person.split(' ')[0]}'s Journey
+          </h2>
+        </div>
 
-      {/* Unlock CTA */}
-      {cause.milestones.some(m => !m.unlocked) && (
-        <div style={{ padding: '0 24px 24px' }}>
+        <div className="space-y-32 md:space-y-48">
+          {cause.milestones.map((ms, index) => (
+            <MemoryNode
+              key={ms.id}
+              milestone={ms}
+              index={index}
+            />
+          ))}
+        </div>
+
+        {/* Unlock CTA */}
+        {cause.milestones.some(m => !m.unlocked) && (
           <motion.div
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            style={{
-              padding: '20px', borderRadius: 20,
-              background: `linear-gradient(135deg, ${cause.tagColor}12, ${cause.tagColor}06)`,
-              border: `1px solid ${cause.tagColor}20`,
-              textAlign: 'center',
-            }}
+            initial={{ opacity: 0, y: 30 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            className="mt-48 text-center"
           >
-            <span style={{ fontSize: 32, display: 'block', marginBottom: 12 }}>🔒</span>
-            <p style={{ fontSize: 15, fontWeight: 600, color: '#f8f8ff', marginBottom: 8 }}>
-              {cause.totalChapters - cause.chapter} chapters to unlock
+            <div className="inline-flex items-center justify-center w-20 h-20 rounded-full bg-white shadow-[0_8px_30px_rgba(0,0,0,0.06)] border border-black/5 mb-8">
+              <Lock size={28} className="text-[#1D1D1F]/30" />
+            </div>
+            <h3 className="text-3xl font-serif text-[#1D1D1F] mb-4">
+              More chapters waiting
+            </h3>
+            <p className="text-[#1D1D1F]/50 max-w-md mx-auto mb-10">
+              Support {cause.person.split(' ')[0]}'s journey to reveal what happens next in the story.
             </p>
-            <p style={{ fontSize: 12, color: 'rgba(248,248,255,0.4)', lineHeight: 1.6, marginBottom: 16 }}>
-              Support {cause.person.split(' ')[0]}'s journey to reveal what happens next in her story.
-            </p>
-            <motion.button
-              whileTap={{ scale: 0.97 }}
+            <button
               onClick={() => onDonate(cause)}
-              style={{
-                padding: '14px 28px', borderRadius: 14,
-                background: `linear-gradient(135deg, ${cause.tagColor}, ${cause.tagColor}cc)`,
-                color: '#040d08', fontSize: 14, fontWeight: 700,
-                fontFamily: 'Inter, sans-serif', border: 'none', cursor: 'pointer',
-                boxShadow: `0 6px 24px ${cause.tagColor}35`,
-              }}
+              className="px-10 py-4 bg-[#2C5530] text-white rounded-full shadow-[0_12px_30px_rgba(44,85,48,0.25)] hover:shadow-[0_20px_40px_rgba(44,85,48,0.35)] hover:bg-[#234526] transition-all transform hover:-translate-y-1 font-medium text-lg tracking-wide"
             >
-              Unlock Next Chapter
-            </motion.button>
+              Continue the Story
+            </button>
           </motion.div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
 
-function TimelineNode({
-  milestone, index, isLast, isExpanded, onExpand, accentColor
-}: {
-  milestone: Milestone
-  index: number
-  isLast: boolean
-  isExpanded: boolean
-  onExpand: () => void
-  accentColor: string
-}) {
+function MemoryNode({ milestone, index }: { milestone: Milestone, index: number }) {
+  const isEven = index % 2 === 0;
+
+  if (!milestone.unlocked) {
+    return (
+      <motion.div 
+        initial={{ opacity: 0 }}
+        whileInView={{ opacity: 1 }}
+        viewport={{ once: true }}
+        className="flex items-center justify-center py-12"
+      >
+        <div className="w-2 h-2 rounded-full bg-[#1D1D1F]/10" />
+      </motion.div>
+    );
+  }
+
   return (
     <motion.div
-      initial={{ opacity: 0, x: -16 }}
-      animate={{ opacity: 1, x: 0 }}
-      transition={{ delay: index * 0.08, duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
-      style={{ display: 'flex', gap: 16, position: 'relative' }}
+      initial={{ opacity: 0, y: 40 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-10%" }}
+      transition={{ duration: 1, ease: [0.16, 1, 0.3, 1] }}
+      className={`flex flex-col ${isEven ? 'md:flex-row' : 'md:flex-row-reverse'} gap-12 md:gap-24 items-center`}
     >
-      {/* Connector line */}
-      {!isLast && (
-        <div style={{
-          position: 'absolute', left: 20, top: 44, width: 2,
-          height: isExpanded ? 'calc(100% - 20px)' : 60,
-          background: milestone.unlocked
-            ? `linear-gradient(to bottom, ${accentColor}40, transparent)`
-            : 'rgba(255,255,255,0.05)',
-          transition: 'height 0.4s ease',
-        }} />
-      )}
-
-      {/* Node icon */}
-      <div style={{ flexShrink: 0, marginTop: 4 }}>
-        <motion.div
-          whileTap={milestone.unlocked ? { scale: 0.9 } : {}}
-          style={{
-            width: 40, height: 40, borderRadius: 14,
-            background: milestone.unlocked
-              ? `linear-gradient(135deg, ${accentColor}25, ${accentColor}10)`
-              : 'rgba(255,255,255,0.04)',
-            border: milestone.unlocked
-              ? `1px solid ${accentColor}40`
-              : '1px solid rgba(255,255,255,0.07)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: 18,
-            boxShadow: milestone.unlocked ? `0 0 16px ${accentColor}20` : 'none',
-          }}
-        >
-          {milestone.unlocked ? milestone.mood : <Lock size={14} color="rgba(255,255,255,0.15)" />}
-        </motion.div>
+      {/* Image */}
+      <div className="w-full md:w-1/2">
+        <div className="relative aspect-[3/4] md:aspect-[4/5] rounded-[24px] md:rounded-[32px] overflow-hidden bg-neutral-100 shadow-[0_20px_60px_rgba(0,0,0,0.08)]">
+          {milestone.image ? (
+            <img 
+              src={milestone.image} 
+              alt={milestone.title} 
+              className="w-full h-full object-cover"
+            />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center text-6xl">
+              {milestone.mood}
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* Content */}
-      <div style={{ flex: 1, paddingBottom: 32 }}>
-        <button
-          onClick={milestone.unlocked ? onExpand : undefined}
-          style={{
-            width: '100%', textAlign: 'left', background: 'none', border: 'none',
-            cursor: milestone.unlocked ? 'pointer' : 'default', padding: 0,
-          }}
-        >
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-            <div>
-              <p style={{
-                fontSize: 14, fontWeight: 600,
-                color: milestone.unlocked ? '#f8f8ff' : 'rgba(248,248,255,0.2)',
-                marginBottom: 3,
-              }}>
-                {milestone.unlocked ? milestone.title : '???'}
-              </p>
-              <p style={{
-                fontSize: 11,
-                color: milestone.unlocked ? 'rgba(248,248,255,0.35)' : 'rgba(248,248,255,0.1)',
-              }}>
-                {milestone.unlocked ? milestone.date : 'Not yet unlocked'}
-              </p>
-            </div>
-            {milestone.unlocked && (
-              <motion.div
-                animate={{ rotate: isExpanded ? 180 : 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <ChevronDown size={16} color="rgba(248,248,255,0.3)" />
-              </motion.div>
-            )}
-          </div>
-        </button>
-
-        <AnimatePresence>
-          {isExpanded && milestone.unlocked && (
-            <motion.div
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              exit={{ opacity: 0, height: 0 }}
-              transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
-              style={{ overflow: 'hidden' }}
-            >
-              <div style={{ marginTop: 12 }}>
-                {milestone.image && (
-                  <div style={{ borderRadius: 16, overflow: 'hidden', marginBottom: 12, height: 160 }}>
-                    <img
-                      src={milestone.image}
-                      alt={milestone.title}
-                      style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                    />
-                  </div>
-                )}
-                <p style={{
-                  fontSize: 13, color: 'rgba(248,248,255,0.55)',
-                  lineHeight: 1.7,
-                  fontFamily: "'Playfair Display', serif",
-                  fontStyle: 'italic',
-                }}>
-                  "{milestone.description}"
-                </p>
-              </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+      {/* Text */}
+      <div className="w-full md:w-1/2 flex flex-col justify-center px-4 md:px-0 text-center md:text-left">
+        <div className="text-sm font-medium text-[#1D1D1F]/40 tracking-wider uppercase mb-4">
+          {milestone.date}
+        </div>
+        <h3 className="text-3xl md:text-5xl font-serif text-[#1D1D1F] leading-tight mb-6">
+          {milestone.title}
+        </h3>
+        <p className="text-xl md:text-2xl text-[#1D1D1F]/60 font-light leading-relaxed">
+          {milestone.description}
+        </p>
       </div>
     </motion.div>
   )
